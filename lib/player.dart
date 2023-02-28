@@ -4,12 +4,14 @@ import 'package:tp_dart/bot.dart';
 import 'package:tp_dart/dice.dart';
 import 'package:tp_dart/user_input.dart';
 import 'package:tp_dart/weapon.dart';
+import 'package:tp_dart/weapon_list_manager.dart';
 
 class Player {
   final String _nickname;
   double _strength;
   int _health;
   Weapon _weapon;
+  final WeaponListManager _weaponListManager = WeaponListManager();
 
   Player(this._nickname, this._health, this._strength, this._weapon);
 
@@ -61,13 +63,14 @@ class Player {
 
   void didWin(Bot bot) {
     _strength = _strength + bot.strength;
-    _health = (_health + 50 * bot.strength).round();
-    const Weapon newWeapon = Weapon('Fusil à pompe', 2, 75);
-    final pickWeaponChoice = selectFromMenu(
-        'Le bot a laissé tomber une arme (${newWeapon.description}), tapez 1 pour la ramasser ou 2 pour conserver votre arme actuelle (${_weapon.description})',
-        2);
-    if (pickWeaponChoice == 1) {
-      _weapon = newWeapon;
+    final Weapon? newWeapon = _weaponListManager.getNextWeaponToLoot();
+    if (newWeapon != null) {
+      final pickWeaponChoice = selectFromMenu(
+          "Le bot a laissé tomber une arme (${newWeapon.description}), tapez 1 pour la ramasser ou 2 pour conserver votre arme actuelle (${_weapon.description})",
+          2);
+      if (pickWeaponChoice == 1) {
+        _weapon = newWeapon;
+      }
     }
   }
 }
