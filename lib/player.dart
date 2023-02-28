@@ -3,57 +3,71 @@ import 'dart:math';
 import 'package:tp_dart/bot.dart';
 import 'package:tp_dart/dice.dart';
 import 'package:tp_dart/user_input.dart';
+import 'package:tp_dart/weapon.dart';
 
 class Player {
-  String nickname;
-  double strength;
-  int health;
+  final String _nickname;
+  double _strength;
+  int _health;
+  Weapon _weapon;
 
-  Player(this.nickname, this.health, this.strength);
+  Player(this._nickname, this._health, this._strength, this._weapon);
 
-  void display() {
-    print('$nickname - $health% - Force : ${strength.toStringAsFixed(1)}');
+  String get nickname => _nickname;
+
+  double get strength => _strength;
+  set strength(double strength) {
+    _strength = max(0, strength);
   }
 
-  bool get isAlive => health > 0;
+  int get health => _health;
+  set health(int health) {
+    _health = max(0, health);
+  }
+
+  void display() {
+    print('$_nickname - $_health% - Force : ${_strength.toStringAsFixed(1)}');
+  }
+
+  bool get isAlive => _health > 0;
 
   void attackBot(Bot bot) {
     final int choice = selectFromMenu('''
-    [1] : Force normale (75% de réussite)
-    [2] : Force doublé (50% de réussite)
-    [3] : Force divisé par 2 (100% de réussite)
-    [4] : Passer son tour et récupérer 50 points de vie
-    ''', 4);
+    [1] : Attaquer le bot
+    [2] : Passer son tour et récupérer 50 points de vie
+    ''', 2);
 
-    if (choice == 4) {
-      health += 50;
-      print('$nickname récupère 50 points de vie !');
+    if (choice == 1) {
+      _attack(bot);
     } else {
-      if (choice == 1) {
-        _customAttack(bot, 0.75, 1);
-      } else if (choice == 2) {
-        _customAttack(bot, 0.50, 2);
-      } else {
-        _customAttack(bot, 1, 0.5);
-      }
+      _health += 50;
+      print('$_nickname récupère 50 points de vie !');
     }
   }
 
-  void _customAttack(Bot bot, double chance, double multiplier) {
-    final double random = Random().nextDouble();
-    if (random <= chance) {
+  void _attack(Bot bot) {
+    final int random = Random().nextInt(100) + 1;
+    if (random <= _weapon.accuracy) {
       readEnter('Appuyez sur entrée pour lancer les dés');
-      final dicesValue = rollDices(nickname);
-      final int attack = (dicesValue * strength * multiplier).round();
-      print('$nickname assène un coup sur le bot avec une force de $attack');
+      final dicesValue = rollDices(_nickname);
+      final int attack = (dicesValue * (_strength + _weapon.power)).round();
+      print(
+          '$_nickname assène un coup sur le bot avec l\'arme ${_weapon.name} et une force de $attack');
       bot.health -= attack;
     } else {
-      print('$nickname n\'a pas réussi à touché le bot !');
+      print('$_nickname n\'a pas réussi à touché le bot !');
     }
   }
 
   void didWin(Bot bot) {
-    strength = strength + bot.strength;
-    health = (health + 50 * bot.strength).round();
+    _strength = _strength + bot.strength;
+    _health = (_health + 50 * bot.strength).round();
+    const Weapon newWeapon = Weapon('Fusil à pompe', 2, 75);
+    final pickWeaponChoice = selectFromMenu(
+        'Le bot a laissé tomber une arme (${newWeapon.description}), tapez 1 pour la ramasser ou 2 pour conserver votre arme actuelle (${_weapon.description})',
+        2);
+    if (pickWeaponChoice == 1) {
+      _weapon = newWeapon;
+    }
   }
 }

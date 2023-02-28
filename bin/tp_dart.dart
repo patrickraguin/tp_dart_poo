@@ -3,12 +3,14 @@ import 'dart:math';
 import 'package:tp_dart/bot.dart';
 import 'package:tp_dart/player.dart';
 import 'package:tp_dart/user_input.dart';
+import 'package:tp_dart/weapon.dart';
 
 void main() {
   Bot bot = Bot(100, 1);
 
   final String nickname = readString('Entrez votre pseudo :');
-  final Player player = Player(nickname, 100, 1);
+  final Player player =
+      Player(nickname, 100, 1, Weapon('Batte de baseball', 1, 100));
 
   int round = 0;
   int botCount = 0;
